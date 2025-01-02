@@ -26,20 +26,25 @@ private:
         std::shared_ptr<Node> pre; // 上一结点
         std::shared_ptr<Node> next;
 
+        // 提供两种构造函数 默认构造函数和带频次的构造函数
         Node() 
         : freq(1), pre(nullptr), next(nullptr) {}
         Node(Key key, Value value) 
         : freq(1), key(key), value(value), pre(nullptr), next(nullptr) {}
     };
-
+    
+    // 类型别名
     using NodePtr = std::shared_ptr<Node>;
     int freq_; // 访问频率
     NodePtr head_; // 假头结点
     NodePtr tail_; // 假尾结点
 
 public:
+    //  explicit关键字只适用于类构造函数 用于防止隐式转换 出现这个关键字的时候就只能显式调用构造函数
+    // FreqList obj1 = 10; 这种隐式调用是错误的！！！
+    // FreqList obj2 = FreqList(10); 正确！
     explicit FreqList(int n) 
-     : freq_(n) 
+     : freq_(n) // 这里的用法是“用传进来的n来初始化结构体里面的freq_变量” 比在函数体里面赋值更加高效
     {
       head_ = std::make_shared<Node>();
       tail_ = std::make_shared<Node>();
@@ -47,12 +52,14 @@ public:
       tail_->pre = head_;
     }
 
+    // 函数后的const关键字指“常量成员函数” 
+    // 该成员函数不会修改其所属对象的任何成员变量（除非这些成员变量被声明为mutable）
     bool isEmpty() const
     {
       return head_->next == tail_;
     }
 
-    // 提那家结点管理方法
+    // 尾插法
     void addNode(NodePtr node) 
     {
         if (!node || !head_ || !tail_) 
