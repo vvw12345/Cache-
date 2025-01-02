@@ -111,6 +111,7 @@ public:
             return;
 
         std::lock_guard<std::mutex> lock(mutex_);
+        // nodeMap是前面unordered_map<Key, NodePtr>的别名 下面first和second分别可以取其Key值和Value值
         auto it = nodeMap_.find(key);
         if (it != nodeMap_.end())
         {
@@ -120,7 +121,8 @@ public:
             getInternal(it->second, value);
             return;
         }
-
+        
+        // 如果没有找到的话就需要在Lfu表里面新增一个表项
         putInternal(key, value);
     }
 
@@ -217,6 +219,7 @@ void KLfuCache<Key, Value>::putInternal(Key key, Value value)
 template<typename Key, typename Value>
 void KLfuCache<Key, Value>::kickOut()
 {
+    // 删除最不经常访问的节点
     NodePtr node = freqToFreqList_[minFreq_]->getFirstNode();
     removeFromFreqList(node);
     nodeMap_.erase(node->key);
@@ -255,11 +258,11 @@ void KLfuCache<Key, Value>::addToFreqList(NodePtr node)
 template<typename Key, typename Value>
 void KLfuCache<Key, Value>::addFreqNum()
 {
-    curTotalNum_++;
+    curTotalNum_++; //总访问频次增加
     if (nodeMap_.empty())
         curAverageNum_ = 0;
     else
-        curAverageNum_ = curTotalNum_ / nodeMap_.size();
+        curAverageNum_ = curTotalNum_ / nodeMap_.size(); // 平均访问频次统计了所有单位
 
     if (curAverageNum_ > maxAverageNum_)
     {
