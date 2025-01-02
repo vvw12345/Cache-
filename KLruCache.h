@@ -12,6 +12,7 @@ namespace KamaCache
 {
 
 // 前向声明
+// template 类模板
 template<typename Key, typename Value> class KLruCache;
 
 template<typename Key, typename Value>
@@ -25,6 +26,7 @@ private:
     std::shared_ptr<LruNode<Key, Value>> next_;
 
 public:
+    // 成员变量初始化 把传入的key和value放进去
     LruNode(Key key, Value value)
         : key_(key)
         , value_(value)
@@ -40,6 +42,10 @@ public:
     size_t getAccessCount() const { return accessCount_; }
     void incrementAccessCount() { ++accessCount_; }
 
+    // 友元类
+    // 可以直接访问LruNode类的private成员和protected成员
+    // 友元类不具有继承性 KLruCache的子类不能继承KLruCache的友元类
+    // 友元类具有单向性 KLruCache可以访问LruNode的成员，反之不一定
     friend class KLruCache<Key, Value>;
 };
 
@@ -48,11 +54,12 @@ template<typename Key, typename Value>
 class KLruCache : public KICachePolicy<Key, Value>
 {
 public:
+    // using关键字 定义类型别名
     using LruNodeType = LruNode<Key, Value>;
     using NodePtr = std::shared_ptr<LruNodeType>;
     using NodeMap = std::unordered_map<Key, NodePtr>;
 
-    KLruCache(int capacity)
+    KLruCache(int capacity) // capacity作为缓存大小
         : capacity_(capacity)
     {
         initializeList();
@@ -67,6 +74,7 @@ public:
             return;
     
         std::lock_guard<std::mutex> lock(mutex_);
+        // 这里的it是一个迭代器 如果不存在指向end
         auto it = nodeMap_.find(key);
         if (it != nodeMap_.end())
         {
@@ -182,9 +190,14 @@ template<typename Key, typename Value>
 class KLruKCache : public KLruCache<Key, Value>
 {
 public:
+    // capacity为缓存队列的大小 
+    // historyCapacity为历史访问队列的大小
+    // k为评判标准
     KLruKCache(int capacity, int historyCapacity, int k)
-        : KLruCache<Key, Value>(capacity) // 调用基类构造
-        , historyList_(std::make_unique<KLruCache<Key, size_t>>(historyCapacity))
+        : KLruCache<Key, Value>(capacity) // 调用基类构造 缓存队列和LruCache是一样的
+        //unique_str只有唯一指向对象
+        // 历史访问队列需要新建一个队列
+        , historyList_(std::make_unique<KLruCache<Key, size_t>>(historyCapacity)) 
         , k_(k)
     {}
 
@@ -230,9 +243,14 @@ class KHashLruCaches
 public:
     KHashLruCaches(size_t capacity, int sliceNum)
         : capacity_(capacity)
-        , sliceNum_(sliceNum > 0 ? sliceNum : std::thread::hardware_concurrency())
+        // 如果传入的sliceNum小于0，则使用hardware_concurrency()函数 查询系统支持的并发线程数 
+        // 一个线程最多访问一个LRU切片 用除法可以获取单个LRU切片容纳的队列大小
+        , sliceNum_(sliceNum > 0 ? sliceNum : std::thread::hardware_concurrency()) 
     {
+        // static_cast<……> 用于类型转换（编译期）
+        // ceil()函数用于向上取整 
         size_t sliceSize = std::ceil(capacity / static_cast<double>(sliceNum_)); // 获取每个分片的大小
+        // 新建若干个队列
         for (int i = 0; i < sliceNum_; ++i)
         {
             lruSliceCaches_.emplace_back(new KLruCache<Key, Value>(sliceSize)); 
@@ -273,6 +291,7 @@ private:
     size_t                                              capacity_;  // 总容量
     int                                                 sliceNum_;  // 切片数量
     std::vector<std::unique_ptr<KLruCache<Key, Value>>> lruSliceCaches_; // 切片LRU缓存
+    // 用一个向量包含一系列指针，指向一系列缓存队列
 };
 
 } // namespace KamaCache

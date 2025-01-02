@@ -1,21 +1,21 @@
-# KamaCache
-【代码随想录知识星球】项目分享-cache的实现（LRU，LFU，ARC）
+# Cache
+原项目：https://github.com/youngyangyang04/KamaCache
 
-## 项目介绍
-本项目使用多个页面替换策略实现一个线程安全的缓存：
-- LRU：最近最久未使用
-- LFU：最近不经常使用
-- ARC：自适应替换
+## LRU
 
-对于LRU和LFU策略，我在其基础的缓存策略上进行了相应的优化，例如：
+### LRU-k
 
-- LRU优化：
-    - LRU分片：对多线程下的高并发访问有性能上的优化
-    - LRU-k：一定程度上防止热点数据被冷数据挤出容器而造成缓存污染等问题
+LRU-k 基础的LRU算法被访问数据进入缓存队列只需要访问(`put、get`)一次就行，但是现在需要被访问k（大小自定义）次才能被放入缓存中，基础的LRU算法可以看成是LRU-1。
 
-- LFU优化：
-    - LFU分片：对多线程下的高并发访问有性能上的优化
-    - 引入最大平均访问频次：解决过去的热点数据最近一直没被访问，却仍占用缓存等问题
+LRU-k算法有两个队列一个是缓存队列，一个是数据访问历史队列。当访问一个数据时，首先将其添加进入访问历史队列并进行累加访问次数，当该数据的访问次数超过k次后，才将数据缓存到缓存队列，从而避免缓存队列被冷数据所污染。同时访问历史队列中的数据也不是一直保留的，也是需要按照LRU的规则进行淘汰的。LRU-k执行过程如图：
+
+![image.png](https://cdn.nlark.com/yuque/0/2024/png/39027506/1733747775068-c066db38-807d-42a7-adf6-18492075db89.png?x-oss-process=image%2Fformat%2Cwebp)
+
+### Hash-LRU
+
+![代码随想录HashLRU.png](https://cdn.nlark.com/yuque/0/2024/png/39027506/1733751073658-2c7d599a-b244-491b-a0fa-ab5ec722cb56.png?x-oss-process=image%2Fformat%2Cwebp)
+
+
 
 ## 编译
 创建一个build文件夹并进入
