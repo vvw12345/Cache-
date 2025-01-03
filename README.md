@@ -31,6 +31,8 @@ Key和Value之间的映射依然是在`NodeMap`（本质是个哈希表）中维
 
 
 
+## ARC
+
 
 
 
@@ -62,8 +64,13 @@ make clean
 ./main
 ```
 
-## 测试结果
+## 测试
 不同缓存策略缓存命中率测试对比结果如下：
-（ps: 该测试代码只是尽可能地模拟真实的访问场景，但是跟真实的场景仍存在一定差距，测试结果仅供参考。）
 
-![alt text](images/image.png)
+增加了对Belady现象的测试……
+
+![image-20250103170510200](README.assets/image-20250103170510200.png)
+
+![image-20250103170531999](README.assets/image-20250103170531999.png)
+
+![image-20250103170546111](README.assets/image-20250103170546111.png)

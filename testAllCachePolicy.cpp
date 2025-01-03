@@ -36,6 +36,14 @@ void printResults(const std::string& testName, int capacity,
               << (100.0 * hits[2] / get_operations[2]) << "%" << std::endl;
 }
 
+// 辅助函数：打印页面集合
+void print_frame(const std::vector<int>& frame_pages) {
+    for (auto& page : frame_pages) {
+        std::cout << page << " ";
+    }
+    std::cout << std::endl;
+}
+
 void testHotDataAccess() {
     std::cout << "\n=== 测试场景1：热点数据访问测试 ===" << std::endl;
     
@@ -203,10 +211,75 @@ void testWorkloadShift() {
 }
 
 
+// Belady测试函数
+int belady(std::vector<int>& token, int frameNum) {
+    std::cout << "\n=== 测试场景4：Belady 现象测试 ===" << std::endl;
+    std::cout << "页面访问流: ";
+    print_frame(token);
+
+    int n = token.size();
+    int pages_missing_count = 0;
+    int l = 0, r = 0;
+
+    std::vector<int> pages_array;
+    std::unordered_map<int, int> pages_map;
+
+    while (r < n) {
+        int last = token[r];
+        if (pages_map[last] > 0) {
+            r++;
+            continue;
+        }
+        pages_missing_count++;
+        if (r - l + 1 > frameNum) {
+            pages_map[pages_array[0]]--;
+            pages_array.erase(pages_array.begin());
+        }
+        pages_array.push_back(last);
+        pages_map[last]++;
+        r++;
+    }
+    return pages_missing_count;
+}
+
+void testBeladyPhenomenon() {
+    const int FRAME_NUM = 3;
+    const int VECTOR_MIN_SIZE = 10;
+    const int VECTOR_MAX_SIZE = 15;
+    const int VALUE_MIN = 0;
+    const int VALUE_MAX = 3;
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(VALUE_MIN, VALUE_MAX);
+
+    auto generateRandomVector = [&]() {
+        std::vector<int> result;
+        int size = VECTOR_MIN_SIZE + (gen() % (VECTOR_MAX_SIZE - VECTOR_MIN_SIZE + 1));
+        for (int i = 0; i < size; ++i) {
+            result.push_back(dis(gen));
+        }
+        return result;
+    };
+
+    std::vector<int> token = generateRandomVector();
+    
+    int missing_count_3 = belady(token, 3);
+    int missing_count_4 = belady(token, 4);
+
+    std::cout << "物理帧为3时缺页次数: " << missing_count_3 << std::endl;
+    std::cout << "物理帧为4时缺页次数: " << missing_count_4 << std::endl;
+
+    if(missing_count_3 < missing_count_4){
+        std::cout << "物理帧为3时的缺页次数少于物理帧为4的缺页次数，此时出现Belady现象" << std::endl; 
+    }
+}
+
 
 int main() {
     testHotDataAccess();
     testLoopPattern();
     testWorkloadShift();
+    testBeladyPhenomenon();
     return 0;
 }
