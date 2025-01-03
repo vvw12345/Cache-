@@ -15,6 +15,7 @@ public:
     using NodePtr = std::shared_ptr<NodeType>;
     using NodeMap = std::unordered_map<Key, NodePtr>;
 
+    // 禁止隐式类型转换
     explicit ArcLruPart(size_t capacity, size_t transformThreshold)
         : capacity_(capacity)
         , ghostCapacity_(capacity)
@@ -28,7 +29,7 @@ public:
         if (capacity_ == 0) return false;
         
         std::lock_guard<std::mutex> lock(mutex_);
-        auto it = mainCache_.find(key);
+        auto it = mainCache_.find(key); // 还是一个哈希表，遍历搜索
         if (it != mainCache_.end()) 
         {
             return updateExistingNode(it->second, value);
@@ -42,7 +43,7 @@ public:
         auto it = mainCache_.find(key);
         if (it != mainCache_.end()) 
         {
-            shouldTransform = updateNodeAccess(it->second);
+            shouldTransform = updateNodeAccess(it->second); //更新之后会返回Node的访问次数，通过访问次数来判断是否要从LRU转到LFU
             value = it->second->getValue();
             return true;
         }
@@ -53,7 +54,7 @@ public:
     {
         auto it = ghostCache_.find(key);
         if (it != ghostCache_.end()) {
-            removeFromGhost(it->second);
+            removeFromGhost(it->second); // 在影子LRU里面找到了，后续就是重新将其加入mainCache
             ghostCache_.erase(it);
             return true;
         }
@@ -65,7 +66,7 @@ public:
     bool decreaseCapacity() 
     {
         if (capacity_ <= 0) return false;
-        if (mainCache_.size() == capacity_) {
+        if (mainCache_.size() == capacity_) { //占满了，先腾出空间再缩容
             evictLeastRecent();
         }
         --capacity_;
@@ -131,6 +132,7 @@ private:
         mainHead_->next_ = node;
     }
 
+    // 从主缓存驱逐出去的同时需要加入幽灵缓存
     void evictLeastRecent() 
     {
         NodePtr leastRecent = mainTail_->prev_;

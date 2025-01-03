@@ -1,5 +1,6 @@
 # Cache
-原项目：https://github.com/youngyangyang04/KamaCache，提供了LRU，LFU和ARC三种Cache的基本实现，具体思路如下文所示……
+原项目：https://github.com/youngyangyang04/KamaCache
+提供了LRU，LFU和ARC三种Cache的基本实现，具体思路如下文所示……
 
 本项目在此之上增加了如下内容
 
@@ -32,6 +33,8 @@ Key和Value之间的映射依然是在`NodeMap`（本质是个哈希表）中维
 
 
 ## ARC
+
+参考实现：[ZFS 文件系统 （ 9 ） -- ARC 可调替换缓存_zfs arc-CSDN博客](https://blog.csdn.net/liuyun2113/article/details/12705057)
 
 
 
