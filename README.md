@@ -1,5 +1,9 @@
 # Cache
-原项目：https://github.com/youngyangyang04/KamaCache
+原项目：https://github.com/youngyangyang04/KamaCache，提供了LRU，LFU和ARC三种Cache的基本实现，具体思路如下文所示……
+
+本项目在此之上增加了如下内容
+
+- Belady现象的测试
 
 ## LRU
 
@@ -14,6 +18,24 @@ LRU-k算法有两个队列一个是缓存队列，一个是数据访问历史队
 ### Hash-LRU
 
 ![代码随想录HashLRU.png](https://cdn.nlark.com/yuque/0/2024/png/39027506/1733751073658-2c7d599a-b244-491b-a0fa-ab5ec722cb56.png?x-oss-process=image%2Fformat%2Cwebp)
+
+
+
+## LFU
+
+对于不同的访问频率维护了不同的链表，minFreq和maxFreq构成了访问频率的维护区间。
+
+Key和Value之间的映射依然是在`NodeMap`（本质是个哈希表）中维护，每次寻找节点需要遍历这个哈希表。
+
+**恢复计数的LFU实现：增加FreqList本质是为了维护不同访问频率的节点，用来计算平均访问频率`AverageNum`，通过`AverageNum`和最大平均访问频率`MaxAverageNum`比较，当超过`MaxAverageNum`时，减小所有节点的访问频次。**优点是对新加入的节点有利，以及对很久没有访问的热点数据可以及时淘汰……
+
+
+
+
+
+
+
+
 
 
 

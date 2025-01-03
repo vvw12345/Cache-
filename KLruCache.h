@@ -115,7 +115,7 @@ public:
         if (it != nodeMap_.end())
         {
             removeNode(it->second);
-            nodeMap_.erase(it);
+            nodeMap_.erase(it); // 去重
         }
     }
 
